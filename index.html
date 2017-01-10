@@ -9,6 +9,7 @@
   <script src="lib/angular/angular.js"></script>
   <!-- <script src="lib/angular/angular-route.js"></script> -->
   <script src="lib/math.min.js"></script>
+  <script src="lib/clipper.js"></script>
   <script src="js/app.js"></script>
   <script src="js/services.js"></script>
   <script src="js/controllers.js"></script>
@@ -95,7 +96,7 @@
       Optional 2nd relief:
       <input type="text" ng-model="sst2.relief_width2" class="relief-field">
       &nbsp;&nbsp;&nbsp;&nbsp;
-      <button ng-click="do_relief()">Bulkheads Relieve</button>
+      <button ng-click="do_offset_clipper()">Bulkheads Relieve</button>
       &nbsp;&nbsp;&nbsp;&nbsp;
       <button ng-click="delete_relief()">Delete ALL relief arcs</button> 
     </div>
@@ -145,8 +146,8 @@
           ng-attr-y2="{{point.y + sst2.bulkhead_placement_xy.y + sst.bulkheads[$parent.$index].display_offset.y}}"
           ng-attr-stroke-width="{{1 / sst2.scale}}" stroke="lime" fill="none"/>
       </g>
-      <g ng-repeat="relief_shape in bulkhead.relief_shapes">
-        <g ng-repeat="point in relief_shape">
+      <g ng-repeat="relief_shape in bulkhead.relief_shapes track by $index">
+        <g ng-repeat="point in relief_shape track by $index">
           <line ng-show="$index > 0"
             ng-attr-x1="{{relief_shape[$index-1].x + sst2.bulkhead_placement_xy.x + sst.bulkheads[$parent.$parent.$index].display_offset.x}}"
             ng-attr-y1="{{relief_shape[$index-1].y + sst2.bulkhead_placement_xy.y + sst.bulkheads[$parent.$parent.$index].display_offset.y}}"
@@ -199,380 +200,48 @@
   ng-attr-stroke-width="{{1 / sst2.scale}}" stroke="orangered" fill="none" />
 
 <!--  T O P   L E F T   O U T L I N E  -->
-<g ng-repeat="arc in sst.top.left_outline">
-
-  <rect ng-show="$index == 0 && sst.top.left_outline.length == 1 && get_coord_live"
-    ng-attr-x="{{arc.a.x - 4 / sst2.scale}}"
-    ng-attr-y="{{arc.a.y - 4 / sst2.scale}}"
-    ng-attr-width="{{8 / sst2.scale}}"
-    ng-attr-height="{{8 / sst2.scale}}"
-    fill="blue"
+<g svg-zarc
+  zarc-obj="sst.top.left_outline" 
+  scale="sst2.scale" 
+  is-active="get_coord_live" 
+  color="blue" 
+  get-scaled-point-func="get_scaled_point"
+  is-drag="sst2.is_drag"
+  sst2="sst2"
   />
-
-  <rect ng-show="sst.top.left_outline.length > 1 && $index == sst.top.left_outline.length - 1 && get_coord_live"
-    ng-attr-x="{{arc.d.x - 4 / sst2.scale}}"
-    ng-attr-y="{{arc.d.y - 4 / sst2.scale}}"
-    ng-attr-width="{{8 / sst2.scale}}"
-    ng-attr-height="{{8 / sst2.scale}}"
-    fill="blue"
-  />
-
-  <line ng-show="arc.a && arc.d && !arc.is_bezier"
-    ng-attr-x1="{{arc.a.x}}"
-    ng-attr-y1="{{arc.a.y}}"
-    ng-attr-x2="{{arc.d.x}}"
-    ng-attr-y2="{{arc.d.y}}"
-    ng-attr-stroke-width="{{1 / sst2.scale}}" stroke="blue" fill="none"/>
-
-  <g ng-show="arc.a && arc.b && arc.c && arc.d && arc.is_bezier && $index < sst.top.left_outline.length - 1"> 
-    <path 
-      ng-attr-d="M{{arc.a.x}} {{arc.a.y}} C {{arc.b.x}} {{arc.b.y}} {{arc.c.x}} {{arc.c.y}} {{arc.d.x}} {{arc.d.y}}"
-      ng-attr-stroke-width="{{1 / sst2.scale}}" stroke="blue" fill="none" />
-  </g>      
-  <g ng-show="arc.a && arc.b && arc.c && arc.d && arc.is_bezier && ($index == sst.top.left_outline.length - 2) && get_coord_live"> 
-    <rect
-      ng-attr-x="{{arc.a.x - 4 / sst2.scale}}"
-      ng-attr-y="{{arc.a.y - 4 / sst2.scale}}"
-      ng-attr-width="{{8 / sst2.scale}}"
-      ng-attr-height="{{8 / sst2.scale}}"
-      fill="blue"/>  
-    <rect
-      ng-attr-x="{{arc.b.x - 4 / sst2.scale}}"
-      ng-attr-y="{{arc.b.y - 4 / sst2.scale}}"
-      ng-attr-width="{{8 / sst2.scale}}"
-      ng-attr-height="{{8 / sst2.scale}}"
-      fill="blue"
-      draggable 
-      drag-obj="tlobc" 
-      drag-index="{{$index}}" 
-      drag-sub-el="b"/>        
-    <rect 
-      ng-attr-x="{{arc.d.x - 4 / sst2.scale}}"
-      ng-attr-y="{{arc.d.y - 4 / sst2.scale}}"
-      ng-attr-width="{{8 / sst2.scale}}"
-      ng-attr-height="{{8 / sst2.scale}}"
-      fill="blue"/>    
-    <line 
-      ng-attr-x1="{{arc.a.x}}"
-      ng-attr-y1="{{arc.a.y}}"
-      ng-attr-x2="{{arc.b.x}}"
-      ng-attr-y2="{{arc.b.y}}"
-      ng-attr-stroke-width="{{1 / sst2.scale}}" stroke-dasharray="{{5 / sst2.scale}}, {{5 / sst2.scale}}" stroke="blue" fill="none"/> 
-    <line 
-      ng-attr-x1="{{arc.c.x}}"
-      ng-attr-y1="{{arc.c.y}}"
-      ng-attr-x2="{{arc.d.x}}"
-      ng-attr-y2="{{arc.d.y}}"
-      ng-attr-stroke-width="{{1 / sst2.scale}}" stroke-dasharray="{{5 / sst2.scale}}, {{5 / sst2.scale}}" stroke="blue" fill="none"/>     
-    <rect 
-      ng-attr-x="{{arc.c.x - (4 / sst2.scale)}}"
-      ng-attr-y="{{arc.c.y - (4 / sst2.scale)}}"
-      ng-attr-width="{{8 / sst2.scale}}"
-      ng-attr-height="{{8 / sst2.scale}}"
-      fill="blue"
-      draggable 
-      drag-obj="tlobc" 
-      drag-index="{{$index}}" 
-      drag-sub-el="c"
-      /> 
-  </g>  
-
-  <line ng-show="arc.a && arc.b && arc.c && arc.d && !arc.is_bezier && $index < sst.top.left_outline.length - 1"
-    ng-attr-x1="{{arc.a.x}}"
-    ng-attr-y1="{{arc.a.y}}"
-    ng-attr-x2="{{arc.d.x}}"
-    ng-attr-y2="{{arc.d.y}}"
-    ng-attr-stroke-width="{{1 / sst2.scale}}" stroke="blue" fill="none"/>
-  <rect ng-show="arc.a && arc.b && arc.c && arc.d && !arc.is_bezier && $index < sst.top.left_outline.length - 1 && get_coord_live"
-    ng-attr-x="{{arc.d.x - 4 / sst2.scale}}"
-    ng-attr-y="{{arc.d.y - 4 / sst2.scale}}"
-    ng-attr-width="{{8 / sst2.scale}}"
-    ng-attr-height="{{8 / sst2.scale}}"
-    fill="blue"/>       
-           
-</g>
-
 <!--  T O P   R I G H T   O U T L I N E  -->
-<g ng-repeat="arc in sst.top.right_outline">
-
-  <rect ng-show="$index == 0 && sst.top.right_outline.length == 1 && get_coord_live"
-    ng-attr-x="{{arc.a.x - 4 / sst2.scale}}"
-    ng-attr-y="{{arc.a.y - 4 / sst2.scale}}"
-    ng-attr-width="{{8 / sst2.scale}}"
-    ng-attr-height="{{8 / sst2.scale}}"
-    fill="blue"
-  />
-
-  <rect ng-show="sst.top.right_outline.length > 1 && $index == sst.top.right_outline.length - 1 && get_coord_live"
-    ng-attr-x="{{arc.d.x - 4 / sst2.scale}}"
-    ng-attr-y="{{arc.d.y - 4 / sst2.scale}}"
-    ng-attr-width="{{8 / sst2.scale}}"
-    ng-attr-height="{{8 / sst2.scale}}"
-    fill="blue"
-  />
-
-  <line ng-show="arc.a && arc.d && !arc.is_bezier"
-    ng-attr-x1="{{arc.a.x}}"
-    ng-attr-y1="{{arc.a.y}}"
-    ng-attr-x2="{{arc.d.x}}"
-    ng-attr-y2="{{arc.d.y}}"
-    ng-attr-stroke-width="{{1 / sst2.scale}}" stroke="blue" fill="none"/>
-
-  <g ng-show="arc.a && arc.b && arc.c && arc.d && arc.is_bezier && $index < sst.top.right_outline.length - 1"> 
-    <path 
-      ng-attr-d="M{{arc.a.x}} {{arc.a.y}} C {{arc.b.x}} {{arc.b.y}} {{arc.c.x}} {{arc.c.y}} {{arc.d.x}} {{arc.d.y}}"
-      ng-attr-stroke-width="{{1 / sst2.scale}}" stroke="blue" fill="none" />
-  </g>      
-  <g ng-show="arc.a && arc.b && arc.c && arc.d && arc.is_bezier && ($index == sst.top.right_outline.length - 2) && get_coord_live"> 
-    <rect
-      ng-attr-x="{{arc.a.x - 4 / sst2.scale}}"
-      ng-attr-y="{{arc.a.y - 4 / sst2.scale}}"
-      ng-attr-width="{{8 / sst2.scale}}"
-      ng-attr-height="{{8 / sst2.scale}}"
-      fill="blue"/>  
-    <rect
-      ng-attr-x="{{arc.b.x - 4 / sst2.scale}}"
-      ng-attr-y="{{arc.b.y - 4 / sst2.scale}}"
-      ng-attr-width="{{8 / sst2.scale}}"
-      ng-attr-height="{{8 / sst2.scale}}"
-      fill="blue"
-      draggable 
-      drag-obj="trobc" 
-      drag-index="{{$index}}" 
-      drag-sub-el="b"/>        
-    <rect 
-      ng-attr-x="{{arc.d.x - 4 / sst2.scale}}"
-      ng-attr-y="{{arc.d.y - 4 / sst2.scale}}"
-      ng-attr-width="{{8 / sst2.scale}}"
-      ng-attr-height="{{8 / sst2.scale}}"
-      fill="blue"/>    
-    <line 
-      ng-attr-x1="{{arc.a.x}}"
-      ng-attr-y1="{{arc.a.y}}"
-      ng-attr-x2="{{arc.b.x}}"
-      ng-attr-y2="{{arc.b.y}}"
-      ng-attr-stroke-width="{{1 / sst2.scale}}" stroke-dasharray="{{5 / sst2.scale}}, {{5 / sst2.scale}}" stroke="blue" fill="none"/> 
-    <line 
-      ng-attr-x1="{{arc.c.x}}"
-      ng-attr-y1="{{arc.c.y}}"
-      ng-attr-x2="{{arc.d.x}}"
-      ng-attr-y2="{{arc.d.y}}"
-      ng-attr-stroke-width="{{1 / sst2.scale}}" stroke-dasharray="{{5 / sst2.scale}}, {{5 / sst2.scale}}" stroke="blue" fill="none"/>     
-    <rect 
-      ng-attr-x="{{arc.c.x - (4 / sst2.scale)}}"
-      ng-attr-y="{{arc.c.y - (4 / sst2.scale)}}"
-      ng-attr-width="{{8 / sst2.scale}}"
-      ng-attr-height="{{8 / sst2.scale}}"
-      fill="blue"
-      draggable 
-      drag-obj="trobc" 
-      drag-index="{{$index}}" 
-      drag-sub-el="c"
-      /> 
-  </g>  
-
-  <line ng-show="arc.a && arc.b && arc.c && arc.d && !arc.is_bezier && $index < sst.top.right_outline.length - 1"
-    ng-attr-x1="{{arc.a.x}}"
-    ng-attr-y1="{{arc.a.y}}"
-    ng-attr-x2="{{arc.d.x}}"
-    ng-attr-y2="{{arc.d.y}}"
-    ng-attr-stroke-width="{{1 / sst2.scale}}" stroke="blue" fill="none"/>
-  <rect ng-show="arc.a && arc.b && arc.c && arc.d && !arc.is_bezier && $index < sst.top.right_outline.length - 1 && get_coord_live"
-    ng-attr-x="{{arc.d.x - 4 / sst2.scale}}"
-    ng-attr-y="{{arc.d.y - 4 / sst2.scale}}"
-    ng-attr-width="{{8 / sst2.scale}}"
-    ng-attr-height="{{8 / sst2.scale}}"
-    fill="blue"/>       
-           
-</g>
-
+<g 
+  svg-zarc 
+  zarc-obj="sst.top.right_outline"
+  scale="sst2.scale" 
+  is-active="get_coord_live" 
+  color="blue" 
+  get-scaled-point-func="get_scaled_point"
+  is-drag="sst2.is_drag"
+  sst2="sst2"
+/>  
 <!--  S I D E  T O P   O U T L I N E -->
-<g ng-repeat="arc in sst.side.top_outline">
-
-  <rect ng-show="$index == 0 && sst.side.top_outline.length == 1 && get_coord_live"
-    ng-attr-x="{{arc.a.x - 4 / sst2.scale}}"
-    ng-attr-y="{{arc.a.y - 4 / sst2.scale}}"
-    ng-attr-width="{{8 / sst2.scale}}"
-    ng-attr-height="{{8 / sst2.scale}}"
-    fill="blue"
-  />
-
-  <rect ng-show="sst.side.top_outline.length > 1 && $index == sst.side.top_outline.length - 1 && get_coord_live"
-    ng-attr-x="{{arc.d.x - 4 / sst2.scale}}"
-    ng-attr-y="{{arc.d.y - 4 / sst2.scale}}"
-    ng-attr-width="{{8 / sst2.scale}}"
-    ng-attr-height="{{8 / sst2.scale}}"
-    fill="blue"
-  />
-
-  <line ng-show="arc.a && arc.d && !arc.is_bezier"
-    ng-attr-x1="{{arc.a.x}}"
-    ng-attr-y1="{{arc.a.y}}"
-    ng-attr-x2="{{arc.d.x}}"
-    ng-attr-y2="{{arc.d.y}}"
-    ng-attr-stroke-width="{{1 / sst2.scale}}" stroke="blue" fill="none"/>
-
-  <g ng-show="arc.a && arc.b && arc.c && arc.d && arc.is_bezier && $index < sst.side.top_outline.length - 1"> 
-    <path 
-      ng-attr-d="M{{arc.a.x}} {{arc.a.y}} C {{arc.b.x}} {{arc.b.y}} {{arc.c.x}} {{arc.c.y}} {{arc.d.x}} {{arc.d.y}}"
-      ng-attr-stroke-width="{{1 / sst2.scale}}" stroke="blue" fill="none" />
-  </g>      
-  <g ng-show="arc.a && arc.b && arc.c && arc.d && arc.is_bezier && ($index == sst.side.top_outline.length - 2) && get_coord_live"> 
-    <rect
-      ng-attr-x="{{arc.a.x - 4 / sst2.scale}}"
-      ng-attr-y="{{arc.a.y - 4 / sst2.scale}}"
-      ng-attr-width="{{8 / sst2.scale}}"
-      ng-attr-height="{{8 / sst2.scale}}"
-      fill="blue"/>  
-    <rect
-      ng-attr-x="{{arc.b.x - 4 / sst2.scale}}"
-      ng-attr-y="{{arc.b.y - 4 / sst2.scale}}"
-      ng-attr-width="{{8 / sst2.scale}}"
-      ng-attr-height="{{8 / sst2.scale}}"
-      fill="blue"
-      draggable 
-      drag-obj="stobc" 
-      drag-index="{{$index}}" 
-      drag-sub-el="b"/>        
-    <rect 
-      ng-attr-x="{{arc.d.x - 4 / sst2.scale}}"
-      ng-attr-y="{{arc.d.y - 4 / sst2.scale}}"
-      ng-attr-width="{{8 / sst2.scale}}"
-      ng-attr-height="{{8 / sst2.scale}}"
-      fill="blue"/>    
-    <line 
-      ng-attr-x1="{{arc.a.x}}"
-      ng-attr-y1="{{arc.a.y}}"
-      ng-attr-x2="{{arc.b.x}}"
-      ng-attr-y2="{{arc.b.y}}"
-      ng-attr-stroke-width="{{1 / sst2.scale}}" stroke-dasharray="{{5 / sst2.scale}}, {{5 / sst2.scale}}" stroke="blue" fill="none"/> 
-    <line 
-      ng-attr-x1="{{arc.c.x}}"
-      ng-attr-y1="{{arc.c.y}}"
-      ng-attr-x2="{{arc.d.x}}"
-      ng-attr-y2="{{arc.d.y}}"
-      ng-attr-stroke-width="{{1 / sst2.scale}}" stroke-dasharray="{{5 / sst2.scale}}, {{5 / sst2.scale}}" stroke="blue" fill="none"/>     
-    <rect 
-      ng-attr-x="{{arc.c.x - (4 / sst2.scale)}}"
-      ng-attr-y="{{arc.c.y - (4 / sst2.scale)}}"
-      ng-attr-width="{{8 / sst2.scale}}"
-      ng-attr-height="{{8 / sst2.scale}}"
-      fill="blue"
-      draggable 
-      drag-obj="stobc" 
-      drag-index="{{$index}}" 
-      drag-sub-el="c"
-      /> 
-  </g>  
-
-  <line ng-show="arc.a && arc.b && arc.c && arc.d && !arc.is_bezier && $index < sst.side.top_outline.length - 1"
-    ng-attr-x1="{{arc.a.x}}"
-    ng-attr-y1="{{arc.a.y}}"
-    ng-attr-x2="{{arc.d.x}}"
-    ng-attr-y2="{{arc.d.y}}"
-    ng-attr-stroke-width="{{1 / sst2.scale}}" stroke="blue" fill="none"/>
-  <rect ng-show="arc.a && arc.b && arc.c && arc.d && !arc.is_bezier && $index < sst.side.top_outline.length - 1 && get_coord_live"
-    ng-attr-x="{{arc.d.x - 4 / sst2.scale}}"
-    ng-attr-y="{{arc.d.y - 4 / sst2.scale}}"
-    ng-attr-width="{{8 / sst2.scale}}"
-    ng-attr-height="{{8 / sst2.scale}}"
-    fill="blue"/>       
-           
-</g>
+<g 
+  svg-zarc 
+  zarc-obj="sst.side.top_outline"
+  scale="sst2.scale" 
+  is-active="get_coord_live" 
+  color="blue" 
+  get-scaled-point-func="get_scaled_point"
+  is-drag="sst2.is_drag"
+  sst2="sst2"
+/>  
 <!--  S I D E   B O T T O M   O U T L I N E  -->
-<g ng-repeat="arc in sst.side.bottom_outline">
-
-  <rect ng-show="$index == 0 && sst.side.bottom_outline.length == 1 && get_coord_live"
-    ng-attr-x="{{arc.a.x - 4 / sst2.scale}}"
-    ng-attr-y="{{arc.a.y - 4 / sst2.scale}}"
-    ng-attr-width="{{8 / sst2.scale}}"
-    ng-attr-height="{{8 / sst2.scale}}"
-    fill="blue"
-  />
-
-  <rect ng-show="sst.side.bottom_outline.length > 1 && $index == sst.side.bottom_outline.length - 1 && get_coord_live"
-    ng-attr-x="{{arc.d.x - 4 / sst2.scale}}"
-    ng-attr-y="{{arc.d.y - 4 / sst2.scale}}"
-    ng-attr-width="{{8 / sst2.scale}}"
-    ng-attr-height="{{8 / sst2.scale}}"
-    fill="blue"
-  />
-
-  <line ng-show="arc.a && arc.d && !arc.is_bezier"
-    ng-attr-x1="{{arc.a.x}}"
-    ng-attr-y1="{{arc.a.y}}"
-    ng-attr-x2="{{arc.d.x}}"
-    ng-attr-y2="{{arc.d.y}}"
-    ng-attr-stroke-width="{{1 / sst2.scale}}" stroke="blue" fill="none"/>
-
-  <g ng-show="arc.a && arc.b && arc.c && arc.d && arc.is_bezier && $index < sst.side.bottom_outline.length - 1"> 
-    <path 
-      ng-attr-d="M{{arc.a.x}} {{arc.a.y}} C {{arc.b.x}} {{arc.b.y}} {{arc.c.x}} {{arc.c.y}} {{arc.d.x}} {{arc.d.y}}"
-      ng-attr-stroke-width="{{1 / sst2.scale}}" stroke="blue" fill="none" />
-  </g>      
-  <g ng-show="arc.a && arc.b && arc.c && arc.d && arc.is_bezier && ($index == sst.side.bottom_outline.length - 2) && get_coord_live"> 
-    <rect
-      ng-attr-x="{{arc.a.x - 4 / sst2.scale}}"
-      ng-attr-y="{{arc.a.y - 4 / sst2.scale}}"
-      ng-attr-width="{{8 / sst2.scale}}"
-      ng-attr-height="{{8 / sst2.scale}}"
-      fill="blue"/>  
-    <rect
-      ng-attr-x="{{arc.b.x - 4 / sst2.scale}}"
-      ng-attr-y="{{arc.b.y - 4 / sst2.scale}}"
-      ng-attr-width="{{8 / sst2.scale}}"
-      ng-attr-height="{{8 / sst2.scale}}"
-      fill="blue"
-      draggable 
-      drag-obj="sbobc" 
-      drag-index="{{$index}}" 
-      drag-sub-el="b"/>        
-    <rect 
-      ng-attr-x="{{arc.d.x - 4 / sst2.scale}}"
-      ng-attr-y="{{arc.d.y - 4 / sst2.scale}}"
-      ng-attr-width="{{8 / sst2.scale}}"
-      ng-attr-height="{{8 / sst2.scale}}"
-      fill="blue"/>    
-    <line 
-      ng-attr-x1="{{arc.a.x}}"
-      ng-attr-y1="{{arc.a.y}}"
-      ng-attr-x2="{{arc.b.x}}"
-      ng-attr-y2="{{arc.b.y}}"
-      ng-attr-stroke-width="{{1 / sst2.scale}}" stroke-dasharray="{{5 / sst2.scale}}, {{5 / sst2.scale}}" stroke="blue" fill="none"/> 
-    <line 
-      ng-attr-x1="{{arc.c.x}}"
-      ng-attr-y1="{{arc.c.y}}"
-      ng-attr-x2="{{arc.d.x}}"
-      ng-attr-y2="{{arc.d.y}}"
-      ng-attr-stroke-width="{{1 / sst2.scale}}" stroke-dasharray="{{5 / sst2.scale}}, {{5 / sst2.scale}}" stroke="blue" fill="none"/>     
-    <rect 
-      ng-attr-x="{{arc.c.x - (4 / sst2.scale)}}"
-      ng-attr-y="{{arc.c.y - (4 / sst2.scale)}}"
-      ng-attr-width="{{8 / sst2.scale}}"
-      ng-attr-height="{{8 / sst2.scale}}"
-      fill="blue"
-      draggable 
-      drag-obj="sbobc" 
-      drag-index="{{$index}}" 
-      drag-sub-el="c"
-      /> 
-  </g>  
-
-  <line ng-show="arc.a && arc.b && arc.c && arc.d && !arc.is_bezier && $index < sst.side.bottom_outline.length - 1"
-    ng-attr-x1="{{arc.a.x}}"
-    ng-attr-y1="{{arc.a.y}}"
-    ng-attr-x2="{{arc.d.x}}"
-    ng-attr-y2="{{arc.d.y}}"
-    ng-attr-stroke-width="{{1 / sst2.scale}}" stroke="blue" fill="none"/>
-  <rect ng-show="arc.a && arc.b && arc.c && arc.d && !arc.is_bezier && $index < sst.side.bottom_outline.length - 1 && get_coord_live"
-    ng-attr-x="{{arc.d.x - 4 / sst2.scale}}"
-    ng-attr-y="{{arc.d.y - 4 / sst2.scale}}"
-    ng-attr-width="{{8 / sst2.scale}}"
-    ng-attr-height="{{8 / sst2.scale}}"
-    fill="blue"/>       
-           
-</g>
-
+<g 
+  svg-zarc 
+  zarc-obj="sst.side.bottom_outline"
+  scale="sst2.scale" 
+  is-active="get_coord_live" 
+  color="blue" 
+  get-scaled-point-func="get_scaled_point"
+  is-drag="sst2.is_drag"
+  sst2="sst2"
+/>  
 
 <!-- A L L   X - S E C S -->
 <g ng-repeat="arcs in sst.xsecs" ng-init="xsecix = $index">
@@ -620,7 +289,7 @@
         ng-attr-height="{{8 / sst2.scale}}"
         fill="red"
         draggable 
-        drag-obj="xobc" 
+        drag-obj2 = "sst.xsecs" 
         drag-index-parent = "{{xsecix}}"
         drag-index="{{$index}}" 
         drag-sub-el="b"/>        
@@ -649,7 +318,7 @@
         ng-attr-height="{{8 / sst2.scale}}"
         fill="red"
         draggable 
-        drag-obj="xobc" 
+        drag-obj2 = "sst.xsecs"
         drag-index-parent = "{{xsecix}}"
         drag-index="{{$index}}" 
         drag-sub-el="c"
