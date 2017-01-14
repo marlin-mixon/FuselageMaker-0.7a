@@ -50,25 +50,25 @@
       <li><a href="#">Digitize Cross Sections</a>
         <ul>
           <li ng-click='clear_op();set_xsec_point_and_arc(sst.xsecs, sst.top, sst.side);sst.xsec.is_dirty=true;'><a href="#">Add a new cross section</a></li>
-          <li ng-click='clear_op();destroy_any("one", "xsecs", "xsec", "cross section", "cross sections", sst2.selected_xsec);'><a href="#">Delete SELECTED cross section</a></li>
+          <li ng-click='clear_op();destroy_any("one", "xsecs", "xsec", "cross section", "cross sections", sst2.selected_xsec);'><a href="#">Delete SELECTED cross section(s)</a></li>
           <li ng-click='clear_op();destroy_any("all", "xsecs", "xsec", "cross section", "cross sections")'><a href="#">Delete ALL cross sections</a></li>
           <li ng-click='clear_op();clean_up_xsecs()'><a href="#">Clean up cross sections (removes malformed)</a></li>
         </ul>
       </li>
-      <li><a href="#">Bulkheads</a>
+      <li><a href="#">Formers/Bulkheads</a>
         <ul>
-          <li ng-click='clear_op();set_bulkhead_arc(sst.bulkheads, sst.top, sst.side)'><a href="#">Mark Locations of Desired Bulkheads</a></li>
-          <li ng-click='clear_op();generate_bulkheads_simplified();'><a href="#">Generate Bulkheads</a></li>
-          <li ng-click='clear_op("keep_bulkheads");destroy_any("one", "bulkheads", "bulk", "bulkhead", "bulkheads", sst2.selected_bulkhead);'><a href="#">Delete SELECTED Bulkhead</a></li>
-          <li ng-click='clear_op();destroy_any("all", "bulkheads", "bulk", "bulkhead", "bulkheads");'><a href="#">Delete ALL Bulkheads</a></li>
-          <li ng-click='clear_op("keep_bulkheads");make_svg_file();download_file(sst2.svg, "bulkheads.svg", "image/svg+xml");'><a href="#">Save Bulkheads to a file</a></li>
+          <li ng-click='clear_op();set_bulkhead_arc(sst.bulkheads, sst.top, sst.side)'><a href="#">Mark Locations of Desired Formers</a></li>
+          <li ng-click='clear_op();generate_bulkheads_simplified();'><a href="#">Generate Formers</a></li>
+          <li ng-click='clear_op("keep_bulkheads");destroy_any("one", "bulkheads", "bulk", "former", "formers", sst2.selected_bulkhead);'><a href="#">Delete SELECTED former(s)</a></li>
+          <li ng-click='clear_op();destroy_any("all", "bulkheads", "bulk", "bulkhead", "bulkheads");'><a href="#">Delete ALL Formers</a></li>
+          <li ng-click='clear_op("keep_bulkheads");make_svg_file();download_file(sst2.svg, "bulkheads.svg", "image/svg+xml");'><a href="#">Save Formers to a file</a></li>
         </ul>
       </li>
       <li><a href="#">&nbsp;&nbsp;Other Commands&nbsp;&nbsp;</a>
         <ul>
           <li ng-click='clear_op("keep_bulkheads");set_plan_image("", false)'><a href="#">Hide plan image</a></li>
           <li ng-click='clear_op("keep_bulkheads");set_plan_image("img/p51_side.jpg", true)'><a href="#">Show plan image</a></li>
-          <li ng-click='clear_op();model_integrity_check()'><a href="#">Model Integrity Check</a></li>
+          <li ng-click='clear_op();model_integrity_check()'><a href="#">Model Integrity Check & Repair</a></li>
           <li>&nbsp;&nbsp;FuselageMaker v. {{version}}&nbsp;&nbsp;</li>
         </ul>
       </li>
@@ -78,7 +78,7 @@
   <div class="opaque-div">    
     <a href="#" ng-click="set_drawing_scale('+');" title="Zoom in 30%"><img src="img/scale_up.png"/></a> <a href="#" ng-click="set_drawing_scale('-');"title="Zoom out 30%"><img src="img/scale_down.png"/></a>
     <span class="bulkhead-menu" ng-show="sst2.bulkhead_context_on">
-      <a href="#" ng-click="relief_exterior_controls();" title="Create relief for outer sheeting and/or interior for rubber clearence"><img src="img/ShaveExterior.png"/></a>
+      <a href="#" ng-click="relief_exterior_controls();" title="Create relief/offset for outer sheeting and/or interior for rubber clearence"><img src="img/ShaveExterior.png"/></a>
     </span>
     <br/>
     <div ng-hide="!sst2.show_button">
@@ -91,14 +91,14 @@
       <a id="undo-button" href="#" ng-click='undo_point()' class='button'>Undo Point</a>
     </div>
     <div ng-hide="sst2.the_set_context != 'relief'" class="context-set">
-      Relieve (# pixels measured from exterior): 
+      Relieve (# pixels offset measured from exterior): 
       <input type="text" ng-model="sst2.relief_width1" class="relief-field">
       Optional 2nd relief:
       <input type="text" ng-model="sst2.relief_width2" class="relief-field">
       &nbsp;&nbsp;&nbsp;&nbsp;
-      <button ng-click="do_offset_clipper()">Bulkheads Relieve</button>
+      <button ng-click="do_offset_clipper()">Formers Relieve/Offset</button>
       &nbsp;&nbsp;&nbsp;&nbsp;
-      <button ng-click="delete_relief()">Delete ALL relief arcs</button> 
+      <button ng-click="delete_relief()">Delete ALL Relieved/Offset Formers</button> 
     </div>
     <div ng-hide="sst2.the_set_context != 'make-arc'" class="context-set">
       Straight line: 
@@ -198,148 +198,6 @@
   ng-attr-x2="{{sst.top.reference_line.tail.x}}"
   ng-attr-y2="{{sst.top.reference_line.tail.y}}"
   ng-attr-stroke-width="{{1 / sst2.scale}}" stroke="orangered" fill="none" />
-
-<!--  T O P   L E F T   O U T L I N E  -->
-<g svg-zarc
-  zarc-obj="sst.top.left_outline" 
-  scale="sst2.scale" 
-  is-active="get_coord_live" 
-  color="blue" 
-  get-scaled-point-func="get_scaled_point"
-  is-drag="sst2.is_drag"
-  sst2="sst2"
-  />
-<!--  T O P   R I G H T   O U T L I N E  -->
-<g 
-  svg-zarc 
-  zarc-obj="sst.top.right_outline"
-  scale="sst2.scale" 
-  is-active="get_coord_live" 
-  color="blue" 
-  get-scaled-point-func="get_scaled_point"
-  is-drag="sst2.is_drag"
-  sst2="sst2"
-/>  
-<!--  S I D E  T O P   O U T L I N E -->
-<g 
-  svg-zarc 
-  zarc-obj="sst.side.top_outline"
-  scale="sst2.scale" 
-  is-active="get_coord_live" 
-  color="blue" 
-  get-scaled-point-func="get_scaled_point"
-  is-drag="sst2.is_drag"
-  sst2="sst2"
-/>  
-<!--  S I D E   B O T T O M   O U T L I N E  -->
-<g 
-  svg-zarc 
-  zarc-obj="sst.side.bottom_outline"
-  scale="sst2.scale" 
-  is-active="get_coord_live" 
-  color="blue" 
-  get-scaled-point-func="get_scaled_point"
-  is-drag="sst2.is_drag"
-  sst2="sst2"
-/>  
-
-<!-- A L L   X - S E C S -->
-<g ng-repeat="arcs in sst.xsecs" ng-init="xsecix = $index">
-  <g ng-repeat="arc in arcs.xsec">
-
-    <rect ng-show="$index == 0 && sst.xsecs[xsecix].xsec.length == 1 && get_coord_live"
-      ng-attr-x="{{arc.a.x - 4 / sst2.scale}}"
-      ng-attr-y="{{arc.a.y - 4 / sst2.scale}}"
-      ng-attr-width="{{8 / sst2.scale}}"
-      ng-attr-height="{{8 / sst2.scale}}"
-      fill="red"
-    />
-
-    <rect ng-show="sst.side.bottom_outline.length > 1 && $index == sst.xsecs[xsecix].xsec.length - 1 && get_coord_live"
-      ng-attr-x="{{arc.d.x - 4 / sst2.scale}}"
-      ng-attr-y="{{arc.d.y - 4 / sst2.scale}}"
-      ng-attr-width="{{8 / sst2.scale}}"
-      ng-attr-height="{{8 / sst2.scale}}"
-      fill="red"
-    />
-
-    <line ng-show="arc.a && arc.d && !arc.is_bezier"
-      ng-attr-x1="{{arc.a.x}}"
-      ng-attr-y1="{{arc.a.y}}"
-      ng-attr-x2="{{arc.d.x}}"
-      ng-attr-y2="{{arc.d.y}}"
-      ng-attr-stroke-width="{{1 / sst2.scale}}" stroke="red" fill="none"/>
-
-    <g ng-show="arc.a && arc.b && arc.c && arc.d && arc.is_bezier && $index < sst.xsecs[xsecix].xsec.length - 1"> 
-      <path 
-        ng-attr-d="M{{arc.a.x}} {{arc.a.y}} C {{arc.b.x}} {{arc.b.y}} {{arc.c.x}} {{arc.c.y}} {{arc.d.x}} {{arc.d.y}}"
-        ng-attr-stroke-width="{{1 / sst2.scale}}" stroke="red" fill="none" />
-    </g>      
-    <g ng-show="arc.a && arc.b && arc.c && arc.d && arc.is_bezier && ($index == sst.xsecs[xsecix].xsec.length - 2) && get_coord_live"> 
-      <rect
-        ng-attr-x="{{arc.a.x - 4 / sst2.scale}}"
-        ng-attr-y="{{arc.a.y - 4 / sst2.scale}}"
-        ng-attr-width="{{8 / sst2.scale}}"
-        ng-attr-height="{{8 / sst2.scale}}"
-        fill="red"/>  
-      <rect
-        ng-attr-x="{{arc.b.x - 4 / sst2.scale}}"
-        ng-attr-y="{{arc.b.y - 4 / sst2.scale}}"
-        ng-attr-width="{{8 / sst2.scale}}"
-        ng-attr-height="{{8 / sst2.scale}}"
-        fill="red"
-        draggable 
-        drag-obj2 = "sst.xsecs" 
-        drag-index-parent = "{{xsecix}}"
-        drag-index="{{$index}}" 
-        drag-sub-el="b"/>        
-      <rect 
-        ng-attr-x="{{arc.d.x - 4 / sst2.scale}}"
-        ng-attr-y="{{arc.d.y - 4 / sst2.scale}}"
-        ng-attr-width="{{8 / sst2.scale}}"
-        ng-attr-height="{{8 / sst2.scale}}"
-        fill="red"/>    
-      <line 
-        ng-attr-x1="{{arc.a.x}}"
-        ng-attr-y1="{{arc.a.y}}"
-        ng-attr-x2="{{arc.b.x}}"
-        ng-attr-y2="{{arc.b.y}}"
-        ng-attr-stroke-width="{{1 / sst2.scale}}" stroke-dasharray="{{5 / sst2.scale}}, {{5 / sst2.scale}}" stroke="red" fill="none"/> 
-      <line 
-        ng-attr-x1="{{arc.c.x}}"
-        ng-attr-y1="{{arc.c.y}}"
-        ng-attr-x2="{{arc.d.x}}"
-        ng-attr-y2="{{arc.d.y}}"
-        ng-attr-stroke-width="{{1 / sst2.scale}}" stroke-dasharray="{{5 / sst2.scale}}, {{5 / sst2.scale}}" stroke="red" fill="none"/>     
-      <rect 
-        ng-attr-x="{{arc.c.x - (4 / sst2.scale)}}"
-        ng-attr-y="{{arc.c.y - (4 / sst2.scale)}}"
-        ng-attr-width="{{8 / sst2.scale}}"
-        ng-attr-height="{{8 / sst2.scale}}"
-        fill="red"
-        draggable 
-        drag-obj2 = "sst.xsecs"
-        drag-index-parent = "{{xsecix}}"
-        drag-index="{{$index}}" 
-        drag-sub-el="c"
-        /> 
-    </g>  
-  </g>
-
-  <line ng-show="arc.a && arc.b && arc.c && arc.d && !arc.is_bezier && $index < sst.side.bottom_outline.length - 1"
-    ng-attr-x1="{{arc.a.x}}"
-    ng-attr-y1="{{arc.a.y}}"
-    ng-attr-x2="{{arc.d.x}}"
-    ng-attr-y2="{{arc.d.y}}"
-    ng-attr-stroke-width="{{1 / sst2.scale}}" stroke="blue" fill="none"/>
-  <rect ng-show="arc.a && arc.b && arc.c && arc.d && !arc.is_bezier && $index < sst.side.bottom_outline.length - 1 && get_coord_live"
-    ng-attr-x="{{arc.d.x - 4 / sst2.scale}}"
-    ng-attr-y="{{arc.d.y - 4 / sst2.scale}}"
-    ng-attr-width="{{8 / sst2.scale}}"
-    ng-attr-height="{{8 / sst2.scale}}"
-    fill="blue"/>       
-           
-</g>
 
 <!-- All top bulkhead locations -->
 <g ng-repeat="this_bulk in sst.top.display.bulk">
@@ -451,6 +309,81 @@
     ng-attr-width="{{8 / sst2.scale}}"
     ng-attr-height="{{8 / sst2.scale}}"
     fill="red"/>
+</g>
+
+<!--  T O P   L E F T   O U T L I N E  -->
+<g svg-zarc
+  zarc-obj="sst.top.left_outline" 
+  scale="sst2.scale" 
+  is-active="get_coord_live" 
+  color="blue" 
+  get-scaled-point-func="get_scaled_point"
+  is-drag="sst2.is_drag"
+  sst2="sst2"
+  />
+<!--  T O P   R I G H T   O U T L I N E  -->
+<g 
+  svg-zarc 
+  zarc-obj="sst.top.right_outline"
+  scale="sst2.scale" 
+  is-active="get_coord_live" 
+  color="blue" 
+  get-scaled-point-func="get_scaled_point"
+  is-drag="sst2.is_drag"
+  sst2="sst2"
+/>  
+<!--  S I D E  T O P   O U T L I N E -->
+<g 
+  svg-zarc 
+  zarc-obj="sst.side.top_outline"
+  scale="sst2.scale" 
+  is-active="get_coord_live" 
+  color="blue" 
+  get-scaled-point-func="get_scaled_point"
+  is-drag="sst2.is_drag"
+  sst2="sst2"
+/>  
+<!--  S I D E   B O T T O M   O U T L I N E  -->
+<g 
+  svg-zarc 
+  zarc-obj="sst.side.bottom_outline"
+  scale="sst2.scale" 
+  is-active="get_coord_live" 
+  color="blue" 
+  get-scaled-point-func="get_scaled_point"
+  is-drag="sst2.is_drag"
+  sst2="sst2"
+/>  
+
+<!-- A L L   X - S E C S -->
+<g ng-repeat="arcs in sst.xsecs" ng-init="xsecix = $index">
+  <g ng-repeat="arc in arcs.xsec">
+    <g 
+      svg-zarc 
+      zarc-obj="sst.xsecs[$index].xsec"
+      scale="sst2.scale" 
+      is-active="get_coord_live" 
+      color="red" 
+      get-scaled-point-func="get_scaled_point"
+      is-drag="sst2.is_drag"
+      sst2="sst2"
+    /> 
+  </g>  
+</g>
+
+  <line ng-show="arc.a && arc.b && arc.c && arc.d && !arc.is_bezier && $index < sst.side.bottom_outline.length - 1"
+    ng-attr-x1="{{arc.a.x}}"
+    ng-attr-y1="{{arc.a.y}}"
+    ng-attr-x2="{{arc.d.x}}"
+    ng-attr-y2="{{arc.d.y}}"
+    ng-attr-stroke-width="{{1 / sst2.scale}}" stroke="blue" fill="none"/>
+  <rect ng-show="arc.a && arc.b && arc.c && arc.d && !arc.is_bezier && $index < sst.side.bottom_outline.length - 1 && get_coord_live"
+    ng-attr-x="{{arc.d.x - 4 / sst2.scale}}"
+    ng-attr-y="{{arc.d.y - 4 / sst2.scale}}"
+    ng-attr-width="{{8 / sst2.scale}}"
+    ng-attr-height="{{8 / sst2.scale}}"
+    fill="blue"/>       
+           
 </g>
 
 </svg>
