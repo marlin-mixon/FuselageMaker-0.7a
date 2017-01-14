@@ -16,7 +16,7 @@ angular.module('fuselageMaker.directives', [])
         scale: '=',
         color: '='
       },
-      require: '^svgZarc',
+      require: '?^svgZarc',
       // require: '^svgZarc',
       link: function(scope, element, attr) {
         var startX = 0, startY = 0, x = 0, y = 0, x0 = 0, y0 = 0;
@@ -78,6 +78,10 @@ angular.module('fuselageMaker.directives', [])
         sst2: '='
       },
       controller: function($scope) {
+        $scope.select_zarc = function(ix, obj) {
+          obj.is_selected = true;
+          obj.selected_element = ix;
+        }
 
       },
       templateUrl: 'partials/svgZarc.html'
