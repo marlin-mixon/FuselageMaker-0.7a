@@ -15,6 +15,24 @@ $scope.set_xy_click = function(element) {
 $scope.set_xy_ortho_arc_click = function(element, tmx) {
   element.push({x:$scope.theX, y:$scope.theY});
 };
+$scope.fix_zarc_selectors = function() {
+  for (var i=0;i<$scope.sst.xsecs.length;i++) {
+    $scope.add_zarc_selectors($scope.sst.xsecs[i].xsec);
+  }
+  $scope.add_zarc_selectors($scope.sst.side.bottom_outline);
+  $scope.add_zarc_selectors($scope.sst.side.top_outline);
+  $scope.add_zarc_selectors($scope.sst.top.left_outline);
+  $scope.add_zarc_selectors($scope.sst.top.right_outline);
+}
+$scope.new_zarc = function() {
+  var starter_zarc = [];
+  $scope.add_zarc_selectors(starter_zarc);
+  return starter_zarc;
+};
+$scope.add_zarc_selectors = function(obj) {
+  obj.is_selected = false;
+  obj.selected_element = -1;
+}
 $scope.set_xy_arc_click = function(args) {
   var element = args.element;
   $scope.sst2.active_arc = args.active_type;
@@ -69,8 +87,8 @@ $scope.sst = {
         y: null
       }
     },
-    top_outline: [],
-    bottom_outline: [],
+    top_outline: $scope.new_zarc(),
+    bottom_outline: $scope.new_zarc(),
     display: {
       bulk: [],
       xsec: []
@@ -101,8 +119,8 @@ $scope.sst = {
         y: null
       },
     },
-    left_outline: [],
-    right_outline: [],
+    left_outline: $scope.new_zarc(),
+    right_outline: $scope.new_zarc(),
     display: {
       bulk: [],
       xsec: []
@@ -163,6 +181,7 @@ $scope.add_fuselage = function(){
   r.onloadend = function(e){
     $scope.sst = JSON.parse(e.target.result);
     $scope.sst2.show_background = true;
+    $scope.fix_zarc_selectors();
     $scope.safe_apply();
   }
   r.readAsBinaryString(f);
@@ -420,7 +439,7 @@ $scope.generate_bulkheads_simplified = function() {
                                             b.x);
       new_bulkhead.push({x:pvx,y:pvy});
     }
-    // Determine it's current width/height
+    // Determine its current width/height
     b.extents = $scope.get_extents(new_bulkhead);
 
     /*
@@ -531,6 +550,7 @@ $scope.undo_point = function() {
     delete last_point.c;
     delete last_point.d;
   }
+  $scope.undoable.selected_element = $scope.undoable.length - 2;
 };
 
 $scope.set_plan_image = function(image_file, is_on) {
@@ -1055,6 +1075,7 @@ $scope.restore_data = function() {
     } else { 
       $scope.sst = JSON.parse(localStorage.getItem('fuselage') );
       $scope.sst2.show_background = true;
+      $scope.fix_zarc_selectors();
       $scope.safe_apply();
     }
   }
@@ -1598,6 +1619,8 @@ $scope.insert_arc_node = function(arc_obj, point, is_bezier) {
       arc_obj[arc_len - 1].c = $scope.lerp(arc_obj[arc_len - 1].a, arc_obj[arc_len - 1].d, 0.66667);
     }
   }
+  arc_obj.is_selected = true;
+  arc_obj.selected_element = arc_len - 1;
 }
 
 $scope.set_drawing_scale = function(mode) {
